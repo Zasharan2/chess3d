@@ -67,16 +67,36 @@ var boardLength = 8;
 var typeBoard = Array(boardLength).fill().map(() => Array(boardLength).fill().map(() => Array(boardLength).fill(-1)));
 var colourBoard = Array(boardLength).fill().map(() => Array(boardLength).fill().map(() => Array(boardLength).fill(-1)));
 var countBoard = Array(boardLength).fill().map(() => Array(boardLength).fill().map(() => Array(boardLength).fill(0)));
+var checkBoard = Array(boardLength).fill().map(() => Array(boardLength).fill().map(() => Array(boardLength).fill(0)));
 
 var selected = new BoardPos(-1, -1, -1);
 
 var showLabels = true;
 
+var moveList = "";
+
 function drawBackground() {
     // background
     ctx.beginPath();
+    ctx.fillStyle = "#663300";
+    ctx.fillRect(512, 0, 512, 4096);
     ctx.fillStyle = "#442200";
     ctx.fillRect(0, 0, 512, 4096);
+    ctx.fillStyle = "#442200";
+    ctx.fillRect(520, 50, 135, 4030);
+
+    // move list label
+    ctx.beginPath();
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "30px Arial";
+    ctx.fillText("Move List", 522, 36);
+    ctx.font = "15px Arial";
+    for (var ii = 0; ii < moveList.split("\n").length; ii++) {
+        for (var jj = 0; jj < moveList.split("\n")[ii].split("\\").length; jj++) {
+            ctx.fillText(moveList.split("\n")[ii].split("\\")[jj], 524 + (jj * 75), 67 + (ii * 20));
+        }
+    }
+    // ctx.fillText(moveList, 524, 67);
 
     // boards
     for (var i = 0; i < boardLength; i++) {
@@ -320,6 +340,63 @@ function calculateMoveToList() {
             break;
         }
     }
+}
+
+var checkList = [];
+function checkCheck() {
+    checkList = [];
+    checkBoard = Array(boardLength).fill().map(() => Array(boardLength).fill().map(() => Array(boardLength).fill(0)));
+    turn = (turn + 1) % 2;
+    findAllThreatened();
+    turn = (turn + 1) % 2;
+    findAllThreatened();
+}
+
+function findAllThreatened() {
+    for (var p = 0; p < boardLength; p++) {
+        for (var q = 0; q < boardLength; q++) {
+            for (var r = 0; r < boardLength; r++) {
+                if (colourBoard[p][q][r] == turn) {
+                    selected.set(p, q, r);
+                    switch (typeBoard[selected.x][selected.y][selected.z]) {
+                        case (PIECE.PAWN): {
+                            calculatePawnMove();
+                            break;
+                        }
+                        case (PIECE.KNIGHT): {
+                            calculateKnightMove();
+                            break;
+                        }
+                        case (PIECE.ROOK): {
+                            calculateRookMove();
+                            break;
+                        }
+                        case (PIECE.BISHOP): {
+                            calculateBishopMove();
+                            break;
+                        }
+                        case (PIECE.QUEEN): {
+                            calculateQueenMove();
+                            break;
+                        }
+                        case (PIECE.KING): {
+                            calculateKingMove();
+                            break;
+                        }
+                        default: {
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    for (var p = 0; p < moveToList.length; p++) {
+        if (typeBoard[moveToList[p].x][moveToList[p].y][moveToList[p].z] == PIECE.KING && colourBoard[moveToList[p].x][moveToList[p].y][moveToList[p].z] != turn) {
+            checkBoard[moveToList[p].x][moveToList[p].y][moveToList[p].z] = 1;
+        }
+    }
+    moveToList = [];
 }
 
 function calculatePawnMove() {
@@ -853,10 +930,15 @@ function drawMoveToList() {
 
                 typeBoard[selected.x][selected.y][selected.z] = -1;
                 countBoard[selected.x][selected.y][selected.z] = 0;
+                if (turn == COLOUR.BLACK) {
+                    moveList += "KQBNR "[typeBoard[moveToList[i].x][moveToList[i].y][moveToList[i].z]] + "abcdefgh"[moveToList[i].x] + "87654321"[moveToList[i].y] + "αβγδεζηθ"[moveToList[i].z] + "\n";
+                } else {
+                    moveList += "KQBNR "[typeBoard[moveToList[i].x][moveToList[i].y][moveToList[i].z]] + "abcdefgh"[moveToList[i].x] + "87654321"[moveToList[i].y] + "αβγδεζηθ"[moveToList[i].z] + "\\";
+                }
                 moveToList = [];
 
+                checkCheck();
                 turn = (turn + 1) % 2;
-                console.log(turn);
             } else {
                 ctx.fillRect((moveToList[i].x * 54) + 40, (moveToList[i].y * 54) + (moveToList[i].z * 512) + 40, 54, 54)
             }
@@ -878,8 +960,22 @@ function moveToListToThreatList() {
 function drawThreatList() {
     for (var i = 0; i < threatList.length; i++) {
         ctx.beginPath();
-        ctx.fillStyle = "#ff000088";
+        ctx.fillStyle = "#ffff0088";
         ctx.fillRect((threatList[i].x * 54) + 40, (threatList[i].y * 54) + (threatList[i].z * 512) + 40, 54, 54)
+    }
+}
+
+function drawCheck() {
+    for (var i = 0; i < boardLength; i++) {
+        for (var j = 0; j < boardLength; j++) {
+            for (var k = 0; k < boardLength; k++) {
+                if (checkBoard[i][j][k] == 1) {
+                    ctx.beginPath();
+                    ctx.fillStyle = "#ff000088";
+                    ctx.fillRect((i * 54) + 40, (j * 54) + (k * 512) + 40, 54, 54)
+                }
+            }
+        }
     }
 }
 
@@ -899,6 +995,7 @@ function main() {
     drawBoard();
     drawMoveToList();
     drawThreatList();
+    drawCheck();
 
     window.requestAnimationFrame(main);
 }
