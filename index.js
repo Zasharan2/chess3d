@@ -918,18 +918,39 @@ function calculateKingMove() {
     }
 }
 
+var pTypeBoard;
+var pColourBoard;
+var pCountBoard;
+var incheck;
 function drawMoveToList() {
     for (var i = 0; i < moveToList.length; i++) {
         ctx.beginPath();
         if (mouseX > (moveToList[i].x * 54) + 40 && mouseX < (moveToList[i].x * 54) + 94 && mouseY > (moveToList[i].y * 54) + (moveToList[i].z * 512) + 40 && mouseY < (moveToList[i].y * 54) + (moveToList[i].z * 512) + 94) {
             ctx.fillStyle = "#00ff0088";
             if (mouseDown && mouseButton == CLICK.LEFT) {
+                // set p boards (in case we need to move back)
+                pTypeBoard = Array(boardLength).fill().map(() => Array(boardLength).fill().map(() => Array(boardLength).fill(-1)));
+                pColourBoard = Array(boardLength).fill().map(() => Array(boardLength).fill().map(() => Array(boardLength).fill(-1)));
+                pCountBoard = Array(boardLength).fill().map(() => Array(boardLength).fill().map(() => Array(boardLength).fill(-1)));
+                for (var l = 0; l < typeBoard.length; l++) {
+                    for (var m = 0; m < typeBoard.length; m++) {
+                        for (var n = 0; n < typeBoard.length; n++) {
+                            pTypeBoard[l][m][n] = typeBoard[l][m][n];
+                            pColourBoard[l][m][n] = colourBoard[l][m][n];
+                            pCountBoard[l][m][n] = countBoard[l][m][n];
+                        }
+                    }
+                }
+
+                // move
                 typeBoard[moveToList[i].x][moveToList[i].y][moveToList[i].z] = typeBoard[selected.x][selected.y][selected.z];
                 colourBoard[moveToList[i].x][moveToList[i].y][moveToList[i].z] = colourBoard[selected.x][selected.y][selected.z];
                 countBoard[moveToList[i].x][moveToList[i].y][moveToList[i].z] = countBoard[selected.x][selected.y][selected.z] + 1;
 
                 typeBoard[selected.x][selected.y][selected.z] = -1;
                 countBoard[selected.x][selected.y][selected.z] = 0;
+
+                // append to movelist
                 if (turn == COLOUR.BLACK) {
                     moveList += "KQBNR "[typeBoard[moveToList[i].x][moveToList[i].y][moveToList[i].z]] + "abcdefgh"[moveToList[i].x] + "87654321"[moveToList[i].y] + "αβγδεζηθ"[moveToList[i].z] + "\n";
                 } else {
@@ -937,8 +958,102 @@ function drawMoveToList() {
                 }
                 moveToList = [];
 
+                // check if in check
                 checkCheck();
-                turn = (turn + 1) % 2;
+                incheck = false;
+                for (var l = 0; l < checkBoard.length; l++) {
+                    for (var m = 0; m < checkBoard.length; m++) {
+                        for (var n = 0; n < checkBoard.length; n++) {
+                            if (checkBoard[l][m][n] == 1 && colourBoard[l][m][n] == turn) {
+                                incheck = true;
+                            }
+                        }
+                    }
+                }
+                if (incheck) {
+                    // if so, reset board
+                    typeBoard = pTypeBoard;
+                    colourBoard = pColourBoard;
+                    countBoard = pCountBoard;
+                    checkCheck();
+
+                    moveList = moveList.slice(0, -5);
+                } else {
+                    // otherwise, advance turn
+                    turn = (turn + 1) % 2;
+
+                    // check king checkmate
+                    checkCheck();
+                    for (var l = 0; l < checkBoard.length; l++) {
+                        for (var m = 0; m < checkBoard.length; m++) {
+                            for (var n = 0; n < checkBoard.length; n++) {
+                                if (checkBoard[l][m][n] == 1 && colourBoard[l][m][n] == turn) {
+                                    selected.set(l, m, n);
+                                    calculateMoveToList();
+                                    var tMoveToList = []
+                                    for (var r = 0; r < moveToList.length; r++) {
+                                        tMoveToList[r] = moveToList[r];
+                                    }
+                                    moveToList = [];
+                                    for (var p = 0; p < boardLength; p++) {
+                                        for (var q = 0; q < boardLength; q++) {
+                                            for (var r = 0; r < boardLength; r++) {
+                                                if (colourBoard[p][q][r] != turn) {
+                                                    selected.set(p, q, r);
+                                                    switch (typeBoard[selected.x][selected.y][selected.z]) {
+                                                        case (PIECE.PAWN): {
+                                                            calculatePawnMove();
+                                                            break;
+                                                        }
+                                                        case (PIECE.KNIGHT): {
+                                                            calculateKnightMove();
+                                                            break;
+                                                        }
+                                                        case (PIECE.ROOK): {
+                                                            calculateRookMove();
+                                                            break;
+                                                        }
+                                                        case (PIECE.BISHOP): {
+                                                            calculateBishopMove();
+                                                            break;
+                                                        }
+                                                        case (PIECE.QUEEN): {
+                                                            calculateQueenMove();
+                                                            break;
+                                                        }
+                                                        case (PIECE.KING): {
+                                                            calculateKingMove();
+                                                            break;
+                                                        }
+                                                        default: {
+                                                            break;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    var tempBoard = Array(boardLength).fill().map(() => Array(boardLength).fill().map(() => Array(boardLength).fill(0)));
+                                    for (var s = 0; s < moveToList.length; s++) {
+                                        tempBoard[moveToList[s].x][moveToList[s].y][moveToList[s].z] = 1;
+                                    }
+                                    var checkmate = true;
+                                    for (var s = 0; s < tMoveToList.length; s++) {
+                                        if (tempBoard[tMoveToList[s].x][tMoveToList[s].y][tMoveToList[s].z] == 0) {
+                                            checkmate = false;
+                                        }
+                                    }
+                                    if (checkmate == true) {
+                                        // turn king to other colour
+                                        colourBoard[l][m][n] = ((turn + 1) % 2);
+                                        checkBoard[l][m][n] = 0;
+                                    }
+                                    moveToList = [];
+                                }
+                            }
+                        }
+                    }
+                }
             } else {
                 ctx.fillRect((moveToList[i].x * 54) + 40, (moveToList[i].y * 54) + (moveToList[i].z * 512) + 40, 54, 54)
             }
