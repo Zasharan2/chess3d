@@ -78,12 +78,15 @@ var moveList = "";
 function drawBackground() {
     // background
     ctx.beginPath();
+    // right background
     ctx.fillStyle = "#663300";
     ctx.fillRect(512, 0, 512, 4096);
+    // left background
     ctx.fillStyle = "#442200";
     ctx.fillRect(0, 0, 512, 4096);
+    // move list background
     ctx.fillStyle = "#442200";
-    ctx.fillRect(520, 50, 135, 4030);
+    ctx.fillRect(520, 50, 190, 4030);
 
     // move list label
     ctx.beginPath();
@@ -93,7 +96,7 @@ function drawBackground() {
     ctx.font = "15px Arial";
     for (var ii = 0; ii < moveList.split("\n").length; ii++) {
         for (var jj = 0; jj < moveList.split("\n")[ii].split("\\").length; jj++) {
-            ctx.fillText(moveList.split("\n")[ii].split("\\")[jj], 524 + (jj * 75), 67 + (ii * 20));
+            ctx.fillText(moveList.split("\n")[ii].split("\\")[jj], 522 + (jj * 95), 67 + (ii * 20));
         }
     }
     // ctx.fillText(moveList, 524, 67);
@@ -929,6 +932,10 @@ function drawMoveToList() {
         if (mouseX > (moveToList[i].x * 54) + 40 && mouseX < (moveToList[i].x * 54) + 94 && mouseY > (moveToList[i].y * 54) + (moveToList[i].z * 512) + 40 && mouseY < (moveToList[i].y * 54) + (moveToList[i].z * 512) + 94) {
             ctx.fillStyle = "#00ff0088";
             if (mouseDown && mouseButton == CLICK.LEFT) {
+                var xForMoveList, yForMoveList, zForMoveList;
+                xForMoveList = moveToList[i].x;
+                yForMoveList = moveToList[i].y;
+                zForMoveList = moveToList[i].z;
                 // set p boards (in case we need to move back)
                 pTypeBoard = Array(boardLength).fill().map(() => Array(boardLength).fill().map(() => Array(boardLength).fill(-1)));
                 pColourBoard = Array(boardLength).fill().map(() => Array(boardLength).fill().map(() => Array(boardLength).fill(-1)));
@@ -953,8 +960,10 @@ function drawMoveToList() {
 
                 // append to movelist
                 if (turn == COLOUR.BLACK) {
+                    moveList += "KQBNR "[pTypeBoard[selected.x][selected.y][selected.z]] + "abcdefgh"[selected.x] + "87654321"[selected.y] + "αβγδεζηθ"[selected.z] + "-";
                     moveList += "KQBNR "[typeBoard[moveToList[i].x][moveToList[i].y][moveToList[i].z]] + "abcdefgh"[moveToList[i].x] + "87654321"[moveToList[i].y] + "αβγδεζηθ"[moveToList[i].z] + "\n";
                 } else {
+                    moveList += "KQBNR "[pTypeBoard[selected.x][selected.y][selected.z]] + "abcdefgh"[selected.x] + "87654321"[selected.y] + "αβγδεζηθ"[selected.z] + "-";
                     moveList += "KQBNR "[typeBoard[moveToList[i].x][moveToList[i].y][moveToList[i].z]] + "abcdefgh"[moveToList[i].x] + "87654321"[moveToList[i].y] + "αβγδεζηθ"[moveToList[i].z] + "\\";
                 }
                 moveToList = [];
@@ -978,10 +987,14 @@ function drawMoveToList() {
                     countBoard = pCountBoard;
                     checkCheck();
 
-                    moveList = moveList.slice(0, -5);
+                    moveList = moveList.slice(0, -10);
                 } else {
                     // otherwise, advance turn
                     turn = (turn + 1) % 2;
+
+                    if (pTypeBoard[xForMoveList][yForMoveList][zForMoveList] != PIECE.BLANK) {
+                        moveList = moveList.slice(0, moveList.length - 4) + "x" + moveList.slice(moveList.length - 4);
+                    }
 
                     // set p boards to new config
                     for (var l = 0; l < typeBoard.length; l++) {
@@ -995,18 +1008,20 @@ function drawMoveToList() {
                     }
 
                     toConvert = [];
-    
+                    
                     // check king checkmate
                     checkCheck();
                     for (var l = 0; l < checkBoard.length; l++) {
                         for (var m = 0; m < checkBoard.length; m++) {
                             for (var n = 0; n < checkBoard.length; n++) {
                                 if (checkBoard[l][m][n] == 1 && colourBoard[l][m][n] == turn) {
+                                    moveList = moveList.slice(0, moveList.length - 1) + "+" + moveList.slice(moveList.length - 1);
                                     selected.set(l, m, n);
-                                    calculateMoveToList();
-                                    var tMoveToList = []
+                                    calculateMoveToList(); // get moves king can make
+                                    // put them in tMoveToList
+                                    var tMoveToList = [];
                                     for (var r = 0; r < moveToList.length; r++) {
-                                        tMoveToList[r] = moveToList[r];
+                                        tMoveToList.push(moveToList[r]);
                                     }
                                     moveToList = [];
                                     for (var p = 0; p < boardLength; p++) {
@@ -1051,6 +1066,7 @@ function drawMoveToList() {
                                     for (var s = 0; s < moveToList.length; s++) {
                                         tempBoard[moveToList[s].x][moveToList[s].y][moveToList[s].z] = 1;
                                     }
+                                    selected.set(l, m, n);
                                     var checkmate = true;
                                     for (var s = 0; s < tMoveToList.length; s++) {
                                         // test move
@@ -1099,9 +1115,6 @@ function drawMoveToList() {
                                     }
                                     if (checkmate == true) {
                                         // turn king to other colour
-                                        console.log(l)
-                                        console.log(m)
-                                        console.log(n)
                                         toConvert.push(new BoardPos(l, m, n));
                                     }
                                     moveToList = [];
@@ -1109,9 +1122,34 @@ function drawMoveToList() {
                             }
                         }
                     }
+                    // convert kings
                     for (var urmom = 0; urmom < toConvert.length; urmom++) {
                         colourBoard[toConvert[urmom].x][toConvert[urmom].y][toConvert[urmom].z] = ((turn + 1) % 2);
                         checkBoard[toConvert[urmom].x][toConvert[urmom].y][toConvert[urmom].z] = 0;
+                        moveList = moveList.slice(0, moveList.length - 2) + "#" + moveList.slice(moveList.length - 1);
+                    }
+                    // count kings
+                    var whiteKingCount = 0;
+                    var blackKingCount = 0;
+                    for (var l = 0; l < typeBoard.length; l++) {
+                        for (var m = 0; m < typeBoard.length; m++) {
+                            for (var n = 0; n < typeBoard.length; n++) {
+                                if (typeBoard[l][m][n] == PIECE.KING && colourBoard[l][m][n] == COLOUR.WHITE) {
+                                    whiteKingCount++;
+                                }
+                                if (typeBoard[l][m][n] == PIECE.KING && colourBoard[l][m][n] == COLOUR.BLACK) {
+                                    blackKingCount++;
+                                }
+                            }
+                        }
+                    }
+                    if (whiteKingCount == 0) {
+                        moveList += "0-1 Black win";
+                        console.log(moveList);
+                    }
+                    if (blackKingCount == 0) {
+                        moveList += "1-0 White win";
+                        console.log(moveList);
                     }
                 }
             } else {
