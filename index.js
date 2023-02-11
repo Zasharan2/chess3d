@@ -922,6 +922,7 @@ var pTypeBoard;
 var pColourBoard;
 var pCountBoard;
 var incheck;
+var toConvert;
 function drawMoveToList() {
     for (var i = 0; i < moveToList.length; i++) {
         ctx.beginPath();
@@ -992,6 +993,8 @@ function drawMoveToList() {
                             }
                         }
                     }
+
+                    toConvert = [];
     
                     // check king checkmate
                     checkCheck();
@@ -1099,13 +1102,16 @@ function drawMoveToList() {
                                         console.log(l)
                                         console.log(m)
                                         console.log(n)
-                                        colourBoard[l][m][n] = ((turn + 1) % 2);
-                                        checkBoard[l][m][n] = 0;
+                                        toConvert.push(new BoardPos(l, m, n));
                                     }
                                     moveToList = [];
                                 }
                             }
                         }
+                    }
+                    for (var urmom = 0; urmom < toConvert.length; urmom++) {
+                        colourBoard[toConvert[urmom].x][toConvert[urmom].y][toConvert[urmom].z] = ((turn + 1) % 2);
+                        checkBoard[toConvert[urmom].x][toConvert[urmom].y][toConvert[urmom].z] = 0;
                     }
                 }
             } else {
