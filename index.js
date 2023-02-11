@@ -982,6 +982,17 @@ function drawMoveToList() {
                     // otherwise, advance turn
                     turn = (turn + 1) % 2;
 
+                    // set p boards to new config
+                    for (var l = 0; l < typeBoard.length; l++) {
+                        for (var m = 0; m < typeBoard.length; m++) {
+                            for (var n = 0; n < typeBoard.length; n++) {
+                                pTypeBoard[l][m][n] = typeBoard[l][m][n];
+                                pColourBoard[l][m][n] = colourBoard[l][m][n];
+                                pCountBoard[l][m][n] = countBoard[l][m][n];
+                            }
+                        }
+                    }
+    
                     // check king checkmate
                     checkCheck();
                     for (var l = 0; l < checkBoard.length; l++) {
@@ -1039,12 +1050,55 @@ function drawMoveToList() {
                                     }
                                     var checkmate = true;
                                     for (var s = 0; s < tMoveToList.length; s++) {
-                                        if (tempBoard[tMoveToList[s].x][tMoveToList[s].y][tMoveToList[s].z] == 0) {
+                                        // test move
+                                        typeBoard[tMoveToList[s].x][tMoveToList[s].y][tMoveToList[s].z] = typeBoard[selected.x][selected.y][selected.z];
+                                        colourBoard[tMoveToList[s].x][tMoveToList[s].y][tMoveToList[s].z] = colourBoard[selected.x][selected.y][selected.z];
+                                        countBoard[tMoveToList[s].x][tMoveToList[s].y][tMoveToList[s].z] = countBoard[selected.x][selected.y][selected.z] + 1;
+
+                                        typeBoard[selected.x][selected.y][selected.z] = -1;
+                                        countBoard[selected.x][selected.y][selected.z] = 0;
+
+                                        // check if in check
+                                        checkCheck();
+                                        incheck = false;
+                                        for (var l2 = 0; l2 < checkBoard.length; l2++) {
+                                            for (var m2 = 0; m2 < checkBoard.length; m2++) {
+                                                for (var n2 = 0; n2 < checkBoard.length; n2++) {
+                                                    if (checkBoard[l2][m2][n2] == 1 && colourBoard[l2][m2][n2] == turn) {
+                                                        incheck = true;
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        if (!incheck) {
                                             checkmate = false;
                                         }
+
+                                        // reset boards for next iteration
+                                        for (var ll = 0; ll < typeBoard.length; ll++) {
+                                            for (var mm = 0; mm < typeBoard.length; mm++) {
+                                                for (var nn = 0; nn < typeBoard.length; nn++) {
+                                                    typeBoard[ll][mm][nn] = pTypeBoard[ll][mm][nn];
+                                                    colourBoard[ll][mm][nn] = pColourBoard[ll][mm][nn];
+                                                    countBoard[ll][mm][nn] = pCountBoard[ll][mm][nn];
+                                                }
+                                            }
+                                        }
+                    
+                                        // typeBoard = pTypeBoard;
+                                        // colourBoard = pColourBoard;
+                                        // countBoard = pCountBoard;
+                    
+                                        // if (tempBoard[tMoveToList[s].x][tMoveToList[s].y][tMoveToList[s].z] == 0) {
+                                        //     checkmate = false;
+                                        // }
                                     }
                                     if (checkmate == true) {
                                         // turn king to other colour
+                                        console.log(l)
+                                        console.log(m)
+                                        console.log(n)
                                         colourBoard[l][m][n] = ((turn + 1) % 2);
                                         checkBoard[l][m][n] = 0;
                                     }
