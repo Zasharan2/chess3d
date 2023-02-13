@@ -40,13 +40,14 @@ const CLICK = {
 };
 
 const SCREENTYPE = {
-    TITLE: 0,
-    TITLE_TO_LOCALGAME: 0.1,
-    TITLE_TO_ONLINEGAME: 0.2,
-    TITLE_TO_SETTINGS: 0.3,
-    LOCALGAME: 1,
-    ONLINEGAME: 2,
-    SETTINGS: 3
+    TITLE: 1,
+    TITLE_TO_LOCALGAME: 1.2,
+    TITLE_TO_ONLINEGAME: 1.3,
+    TITLE_TO_SETTINGS: 1.4,
+    LOCALGAME: 2,
+    ONLINEGAME: 3,
+    SETTINGS: 4,
+    SETTINGS_TO_TITLE: 4.1
 }
 
 var gameScreen;
@@ -1320,6 +1321,75 @@ function drawTitleBackground() {
     ctx.fillRect(768, 0, 256, 512);
 }
 
+var musicToggle = false;
+var settingsDelay;
+function drawSettingsBackground() {
+    settingsDelay++;
+
+    // black background
+    ctx.beginPath();
+    ctx.fillStyle = "#000000";
+    ctx.fillRect(0, 0, 1024, 4096);
+    ctx.beginPath();
+    // dark brown
+    ctx.fillStyle = "#442200";
+    ctx.fillRect(256, 0, 512, 512);
+    // light brown
+    ctx.beginPath();
+    ctx.fillStyle = "#884400";
+    ctx.fillRect(264, 8, 496, 496);
+    // settings title
+    ctx.beginPath();
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "25px Arial";
+    ctx.fillText("Settings", 270, 35);
+    // music toggle
+    ctx.beginPath();
+    if (mouseX > 270 && mouseX < 370 && mouseY > 50 && mouseY < 80) {
+        if (musicToggle) {
+            ctx.fillStyle = "#00ff00";
+        } else {
+            ctx.fillStyle = "#ff0000";
+        }
+        if (mouseDown && settingsDelay > 15) {
+            if (musicToggle) {
+                musicToggle = false;
+                bluebird.pause();
+            } else {
+                musicToggle = true;
+                bluebird.play();
+            }
+            settingsDelay = 0;
+        }
+    } else {
+        if (musicToggle) {
+            ctx.fillStyle = "#008800";
+        } else {
+            ctx.fillStyle = "#880000";
+        }
+    }
+    ctx.fillRect(270, 50, 100, 30);
+    ctx.beginPath();
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "25px Arial";
+    ctx.fillText("Music", 284, 74);
+    // back button
+    ctx.beginPath();
+    if (mouseX > 670 && mouseX < 750 && mouseY > 460 && mouseY < 490) {
+        ctx.fillStyle = "#cc8800";
+        if (mouseDown) {
+            gameScreen = SCREENTYPE.SETTINGS_TO_TITLE;
+        }
+    } else {
+        ctx.fillStyle = "#663300";
+    }
+    ctx.fillRect(670, 460, 80, 30);
+    ctx.beginPath();
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "25px Arial";
+    ctx.fillText("Back", 681, 484);
+}
+
 gameScreen = SCREENTYPE.TITLE;
 
 function main() {
@@ -1331,6 +1401,20 @@ function main() {
         case (SCREENTYPE.TITLE_TO_LOCALGAME): {
             initBoard();
             gameScreen = SCREENTYPE.LOCALGAME;
+            break;
+        }
+        case (SCREENTYPE.TITLE_TO_SETTINGS): {
+            settingsDelay = 15;
+            gameScreen = SCREENTYPE.SETTINGS;
+            break;
+        }
+        case (SCREENTYPE.SETTINGS): {
+            drawSettingsBackground();
+            break;
+        }
+        case (SCREENTYPE.SETTINGS_TO_TITLE): {
+            titlePieceX = 300;
+            gameScreen = SCREENTYPE.TITLE;
             break;
         }
         case (SCREENTYPE.LOCALGAME): {
