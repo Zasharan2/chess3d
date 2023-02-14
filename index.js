@@ -5,11 +5,9 @@ var keys = [];
 
 window.addEventListener("keydown", function(event) {
     keys[event.key] = true;
-    console.log(keys);
 }, false);
 window.addEventListener("keyup", function(event) {
     keys[event.key] = false;
-    console.log(keys);
 }, false);
 
 var mouseX, mouseY;
@@ -102,6 +100,8 @@ var moveList = "";
 var bluebird = document.getElementById("bluebird");
 bluebird.loop = true;
 
+var capturedCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
 function drawBackground() {
     // background
     ctx.beginPath();
@@ -127,6 +127,47 @@ function drawBackground() {
         }
     }
     // ctx.fillText(moveList, 524, 67);
+
+    // pieces background
+    ctx.fillStyle = "#442200";
+    ctx.fillRect(760, 50, 240, 200);
+    // move list label
+    ctx.beginPath();
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "30px Arial";
+    ctx.fillText("Capture List", 800, 36);
+    // white labels
+    ctx.beginPath();
+    ctx.drawImage(spritesheet, 5 * (640 / 3), 0 * (427 / 2), (640 / 3), (640 / 3), 758, 50, 40, 40);
+    ctx.drawImage(spritesheet, 3 * (640 / 3), 0 * (427 / 2), (640 / 3), (640 / 3), 808, 50, 40, 40);
+    ctx.drawImage(spritesheet, 2 * (640 / 3), 0 * (427 / 2), (640 / 3), (640 / 3), 858, 50, 40, 40);
+    ctx.drawImage(spritesheet, 4 * (640 / 3), 0 * (427 / 2), (640 / 3), (640 / 3), 908, 50, 40, 40);
+    ctx.drawImage(spritesheet, 1 * (640 / 3), 0 * (427 / 2), (640 / 3), (640 / 3), 958, 50, 40, 40);
+    // black labels
+    ctx.beginPath();
+    ctx.drawImage(spritesheet, 5 * (640 / 3), 1 * (427 / 2), (640 / 3), (640 / 3), 758, 150, 40, 40);
+    ctx.drawImage(spritesheet, 3 * (640 / 3), 1 * (427 / 2), (640 / 3), (640 / 3), 808, 150, 40, 40);
+    ctx.drawImage(spritesheet, 2 * (640 / 3), 1 * (427 / 2), (640 / 3), (640 / 3), 858, 150, 40, 40);
+    ctx.drawImage(spritesheet, 4 * (640 / 3), 1 * (427 / 2), (640 / 3), (640 / 3), 908, 150, 40, 40);
+    ctx.drawImage(spritesheet, 1 * (640 / 3), 1 * (427 / 2), (640 / 3), (640 / 3), 958, 150, 40, 40);
+    // white values
+    ctx.beginPath();
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "30px Arial";
+    ctx.fillText(capturedCounts[0], 770, 133);
+    ctx.fillText(capturedCounts[1], 820, 133);
+    ctx.fillText(capturedCounts[2], 870, 133);
+    ctx.fillText(capturedCounts[3], 920, 133);
+    ctx.fillText(capturedCounts[4], 970, 133);
+    // black values
+    ctx.beginPath();
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "30px Arial";
+    ctx.fillText(capturedCounts[5], 770, 236);
+    ctx.fillText(capturedCounts[6], 820, 236);
+    ctx.fillText(capturedCounts[7], 870, 236);
+    ctx.fillText(capturedCounts[8], 920, 236);
+    ctx.fillText(capturedCounts[9], 970, 236);
 
     // boards
     for (var i = 0; i < boardLength; i++) {
@@ -1032,6 +1073,48 @@ function drawMoveToList() {
 
                     if (pTypeBoard[xForMoveList][yForMoveList][zForMoveList] != PIECE.BLANK) {
                         moveList = moveList.slice(0, moveList.length - 4) + "x" + moveList.slice(moveList.length - 4);
+                        switch (pTypeBoard[xForMoveList][yForMoveList][zForMoveList]) {
+                            case (PIECE.PAWN): {
+                                if (turn == COLOUR.WHITE) {
+                                    capturedCounts[0]++;
+                                } else {
+                                    capturedCounts[5]++;
+                                }
+                                break;
+                            }
+                            case (PIECE.KNIGHT): {
+                                if (turn == COLOUR.WHITE) {
+                                    capturedCounts[1]++;
+                                } else {
+                                    capturedCounts[6]++;
+                                }
+                                break;
+                            }
+                            case (PIECE.BISHOP): {
+                                if (turn == COLOUR.WHITE) {
+                                    capturedCounts[2]++;
+                                } else {
+                                    capturedCounts[7]++;
+                                }
+                                break;
+                            }
+                            case (PIECE.ROOK): {
+                                if (turn == COLOUR.WHITE) {
+                                    capturedCounts[3]++;
+                                } else {
+                                    capturedCounts[8]++;
+                                }
+                                break;
+                            }
+                            case (PIECE.QUEEN): {
+                                if (turn == COLOUR.WHITE) {
+                                    capturedCounts[4]++;
+                                } else {
+                                    capturedCounts[9]++;
+                                }
+                                break;
+                            }
+                        }
                     }
 
                     // set p boards to new config
@@ -1067,109 +1150,66 @@ function drawMoveToList() {
                             for (var n = 0; n < check1Board.length; n++) {
                                 if (check1Board[l][m][n] == 1 && colourBoard[l][m][n] == turn) {
                                     moveList = moveList.slice(0, moveList.length - 1) + "+" + moveList.slice(moveList.length - 1);
-                                    selected.set(l, m, n);
-                                    calculateMoveToList(); // get moves king can make
-                                    // put them in tMoveToList
-                                    var tMoveToList = [];
-                                    for (var r = 0; r < moveToList.length; r++) {
-                                        tMoveToList.push(moveToList[r]);
-                                        console.log(tMoveToList[r])
-                                    }
-                                    moveToList = [];
-                                    // for (var p = 0; p < boardLength; p++) {
-                                    //     for (var q = 0; q < boardLength; q++) {
-                                    //         for (var r = 0; r < boardLength; r++) {
-                                    //             if (colourBoard[p][q][r] != turn && typeBoard[p][q][r] != PIECE.BLANK) {
-                                    //                 selected.set(p, q, r);
-                                    //                 switch (typeBoard[selected.x][selected.y][selected.z]) {
-                                    //                     case (PIECE.PAWN): {
-                                    //                         calculatePawnMove();
-                                    //                         break;
-                                    //                     }
-                                    //                     case (PIECE.KNIGHT): {
-                                    //                         calculateKnightMove();
-                                    //                         break;
-                                    //                     }
-                                    //                     case (PIECE.ROOK): {
-                                    //                         calculateRookMove();
-                                    //                         break;
-                                    //                     }
-                                    //                     case (PIECE.BISHOP): {
-                                    //                         calculateBishopMove();
-                                    //                         break;
-                                    //                     }
-                                    //                     case (PIECE.QUEEN): {
-                                    //                         calculateQueenMove();
-                                    //                         break;
-                                    //                     }
-                                    //                     case (PIECE.KING): {
-                                    //                         calculateKingMove();
-                                    //                         break;
-                                    //                     }
-                                    //                     default: {
-                                    //                         break;
-                                    //                     }
-                                    //                 }
-                                    //             }
-                                    //         }
-                                    //     }
-                                    // }
-                                    // var tempBoard = Array(boardLength).fill().map(() => Array(boardLength).fill().map(() => Array(boardLength).fill(0)));
-                                    // for (var s = 0; s < moveToList.length; s++) {
-                                    //     tempBoard[moveToList[s].x][moveToList[s].y][moveToList[s].z] = 1;
-                                    // }
-                                    selected.set(l, m, n);
                                     var checkmate = true;
-                                    for (var s = 0; s < tMoveToList.length; s++) {
-                                        // test move
-                                        typeBoard[tMoveToList[s].x][tMoveToList[s].y][tMoveToList[s].z] = typeBoard[selected.x][selected.y][selected.z];
-                                        colourBoard[tMoveToList[s].x][tMoveToList[s].y][tMoveToList[s].z] = colourBoard[selected.x][selected.y][selected.z];
-                                        countBoard[tMoveToList[s].x][tMoveToList[s].y][tMoveToList[s].z] = countBoard[selected.x][selected.y][selected.z] + 1;
+                                    for (var l2 = 0; l2 < check1Board.length; l2++) {
+                                        for (var m2 = 0; m2 < check1Board.length; m2++) {
+                                            for (var n2 = 0; n2 < check1Board.length; n2++) {
+                                                if (typeBoard[l2][m2][n2] != PIECE.BLANK && colourBoard[l2][m2][n2] == turn) {
+                                                    selected.set(l2, m2, n2);
+                                                    calculateMoveToList();
+                                                    var tMoveToList = [];
+                                                    for (var r = 0; r < moveToList.length; r++) {
+                                                        tMoveToList.push(moveToList[r]);
+                                                    }
+                                                    moveToList = [];
+                                                    
+                                                    for (var s = 0; s < tMoveToList.length; s++) {
+                                                        // test move
+                                                        typeBoard[tMoveToList[s].x][tMoveToList[s].y][tMoveToList[s].z] = typeBoard[selected.x][selected.y][selected.z];
+                                                        colourBoard[tMoveToList[s].x][tMoveToList[s].y][tMoveToList[s].z] = colourBoard[selected.x][selected.y][selected.z];
+                                                        countBoard[tMoveToList[s].x][tMoveToList[s].y][tMoveToList[s].z] = countBoard[selected.x][selected.y][selected.z] + 1;
 
-                                        typeBoard[selected.x][selected.y][selected.z] = -1;
-                                        countBoard[selected.x][selected.y][selected.z] = 0;
+                                                        typeBoard[selected.x][selected.y][selected.z] = -1;
+                                                        countBoard[selected.x][selected.y][selected.z] = 0;
 
-                                        // check if in check
-                                        checkList = [];
-                                        checkBoard = Array(boardLength).fill().map(() => Array(boardLength).fill().map(() => Array(boardLength).fill(0)));
-                                        turn = (turn + 1) % 2;
-                                        findAllThreatened();
-                                        turn = (turn + 1) % 2;
-                                        
-                                        incheck = false;
-                                        for (var l2 = 0; l2 < checkBoard.length; l2++) {
-                                            for (var m2 = 0; m2 < checkBoard.length; m2++) {
-                                                for (var n2 = 0; n2 < checkBoard.length; n2++) {
-                                                    if (checkBoard[l2][m2][n2] == 1 && colourBoard[l2][m2][n2] == turn) {
-                                                        console.log(l2 + "," + m2 + "," + n2);
-                                                        incheck = true;
+                                                        // check if in check
+                                                        checkList = [];
+                                                        checkBoard = Array(boardLength).fill().map(() => Array(boardLength).fill().map(() => Array(boardLength).fill(0)));
+                                                        turn = (turn + 1) % 2;
+                                                        findAllThreatened();
+                                                        turn = (turn + 1) % 2;
+
+                                                        incheck = false;
+                                                        for (var l3 = 0; l3 < checkBoard.length; l3++) {
+                                                            for (var m3 = 0; m3 < checkBoard.length; m3++) {
+                                                                for (var n3 = 0; n3 < checkBoard.length; n3++) {
+                                                                    if (checkBoard[l3][m3][n3] == 1 && colourBoard[l3][m3][n3] == turn) {
+                                                                        console.log(l3 + "," + m3 + "," + n3);
+                                                                        incheck = true;
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+
+                                                        if (!incheck) {
+                                                            checkmate = false;
+                                                            console.log(tMoveToList[s]);
+                                                        }
+
+                                                        // reset boards for next iteration
+                                                        for (var ll = 0; ll < typeBoard.length; ll++) {
+                                                            for (var mm = 0; mm < typeBoard.length; mm++) {
+                                                                for (var nn = 0; nn < typeBoard.length; nn++) {
+                                                                    typeBoard[ll][mm][nn] = pTypeBoard[ll][mm][nn];
+                                                                    colourBoard[ll][mm][nn] = pColourBoard[ll][mm][nn];
+                                                                    countBoard[ll][mm][nn] = pCountBoard[ll][mm][nn];
+                                                                }
+                                                            }
+                                                        }
                                                     }
                                                 }
                                             }
                                         }
-
-                                        if (!incheck) {
-                                            checkmate = false;
-                                        }
-
-                                        // reset boards for next iteration
-                                        for (var ll = 0; ll < typeBoard.length; ll++) {
-                                            for (var mm = 0; mm < typeBoard.length; mm++) {
-                                                for (var nn = 0; nn < typeBoard.length; nn++) {
-                                                    typeBoard[ll][mm][nn] = pTypeBoard[ll][mm][nn];
-                                                    colourBoard[ll][mm][nn] = pColourBoard[ll][mm][nn];
-                                                    countBoard[ll][mm][nn] = pCountBoard[ll][mm][nn];
-                                                }
-                                            }
-                                        }
-                    
-                                        // typeBoard = pTypeBoard;
-                                        // colourBoard = pColourBoard;
-                                        // countBoard = pCountBoard;
-                    
-                                        // if (tempBoard[tMoveToList[s].x][tMoveToList[s].y][tMoveToList[s].z] == 0) {
-                                        //     checkmate = false;
-                                        // }
                                     }
                                     if (checkmate == true) {
                                         // turn king to other colour
@@ -1177,6 +1217,117 @@ function drawMoveToList() {
                                         toConvert.push(new BoardPos(l, m, n));
                                     }
                                     moveToList = [];
+                                    // selected.set(l, m, n);
+                                    // calculateMoveToList(); // get moves king can make
+                                    // // put them in tMoveToList
+                                    // var tMoveToList = [];
+                                    // for (var r = 0; r < moveToList.length; r++) {
+                                    //     tMoveToList.push(moveToList[r]);
+                                    //     console.log(tMoveToList[r])
+                                    // }
+                                    // moveToList = [];
+                                    // // for (var p = 0; p < boardLength; p++) {
+                                    // //     for (var q = 0; q < boardLength; q++) {
+                                    // //         for (var r = 0; r < boardLength; r++) {
+                                    // //             if (colourBoard[p][q][r] != turn && typeBoard[p][q][r] != PIECE.BLANK) {
+                                    // //                 selected.set(p, q, r);
+                                    // //                 switch (typeBoard[selected.x][selected.y][selected.z]) {
+                                    // //                     case (PIECE.PAWN): {
+                                    // //                         calculatePawnMove();
+                                    // //                         break;
+                                    // //                     }
+                                    // //                     case (PIECE.KNIGHT): {
+                                    // //                         calculateKnightMove();
+                                    // //                         break;
+                                    // //                     }
+                                    // //                     case (PIECE.ROOK): {
+                                    // //                         calculateRookMove();
+                                    // //                         break;
+                                    // //                     }
+                                    // //                     case (PIECE.BISHOP): {
+                                    // //                         calculateBishopMove();
+                                    // //                         break;
+                                    // //                     }
+                                    // //                     case (PIECE.QUEEN): {
+                                    // //                         calculateQueenMove();
+                                    // //                         break;
+                                    // //                     }
+                                    // //                     case (PIECE.KING): {
+                                    // //                         calculateKingMove();
+                                    // //                         break;
+                                    // //                     }
+                                    // //                     default: {
+                                    // //                         break;
+                                    // //                     }
+                                    // //                 }
+                                    // //             }
+                                    // //         }
+                                    // //     }
+                                    // // }
+                                    // // var tempBoard = Array(boardLength).fill().map(() => Array(boardLength).fill().map(() => Array(boardLength).fill(0)));
+                                    // // for (var s = 0; s < moveToList.length; s++) {
+                                    // //     tempBoard[moveToList[s].x][moveToList[s].y][moveToList[s].z] = 1;
+                                    // // }
+                                    // selected.set(l, m, n);
+                                    // var checkmate = true;
+                                    // for (var s = 0; s < tMoveToList.length; s++) {
+                                    //     // test move
+                                    //     typeBoard[tMoveToList[s].x][tMoveToList[s].y][tMoveToList[s].z] = typeBoard[selected.x][selected.y][selected.z];
+                                    //     colourBoard[tMoveToList[s].x][tMoveToList[s].y][tMoveToList[s].z] = colourBoard[selected.x][selected.y][selected.z];
+                                    //     countBoard[tMoveToList[s].x][tMoveToList[s].y][tMoveToList[s].z] = countBoard[selected.x][selected.y][selected.z] + 1;
+
+                                    //     typeBoard[selected.x][selected.y][selected.z] = -1;
+                                    //     countBoard[selected.x][selected.y][selected.z] = 0;
+
+                                    //     // check if in check
+                                    //     checkList = [];
+                                    //     checkBoard = Array(boardLength).fill().map(() => Array(boardLength).fill().map(() => Array(boardLength).fill(0)));
+                                    //     turn = (turn + 1) % 2;
+                                    //     findAllThreatened();
+                                    //     turn = (turn + 1) % 2;
+
+                                    //     incheck = false;
+                                    //     for (var l2 = 0; l2 < checkBoard.length; l2++) {
+                                    //         for (var m2 = 0; m2 < checkBoard.length; m2++) {
+                                    //             for (var n2 = 0; n2 < checkBoard.length; n2++) {
+                                    //                 if (checkBoard[l2][m2][n2] == 1 && colourBoard[l2][m2][n2] == turn) {
+                                    //                     console.log(l2 + "," + m2 + "," + n2);
+                                    //                     incheck = true;
+                                    //                 }
+                                    //             }
+                                    //         }
+                                    //     }
+
+                                    //     if (!incheck) {
+                                    //         checkmate = false;
+                                    //         console.log(tMoveToList[s]);
+                                    //     }
+
+                                    //     // reset boards for next iteration
+                                    //     for (var ll = 0; ll < typeBoard.length; ll++) {
+                                    //         for (var mm = 0; mm < typeBoard.length; mm++) {
+                                    //             for (var nn = 0; nn < typeBoard.length; nn++) {
+                                    //                 typeBoard[ll][mm][nn] = pTypeBoard[ll][mm][nn];
+                                    //                 colourBoard[ll][mm][nn] = pColourBoard[ll][mm][nn];
+                                    //                 countBoard[ll][mm][nn] = pCountBoard[ll][mm][nn];
+                                    //             }
+                                    //         }
+                                    //     }
+                    
+                                    //     // typeBoard = pTypeBoard;
+                                    //     // colourBoard = pColourBoard;
+                                    //     // countBoard = pCountBoard;
+                    
+                                    //     // if (tempBoard[tMoveToList[s].x][tMoveToList[s].y][tMoveToList[s].z] == 0) {
+                                    //     //     checkmate = false;
+                                    //     // }
+                                    // }
+                                    // if (checkmate == true) {
+                                    //     // turn king to other colour
+                                    //     console.log("e")
+                                    //     toConvert.push(new BoardPos(l, m, n));
+                                    // }
+                                    // moveToList = [];
                                 }
                             }
                         }
