@@ -98,7 +98,27 @@ var showLabels = true;
 var moveList = "";
 
 var bluebird = document.getElementById("bluebird");
+var badapple = document.getElementById("badapple");
+var kawaki = document.getElementById("kawaki");
+var bakamitai = document.getElementById("bakamitai");
+var never = document.getElementById("never");
 bluebird.loop = true;
+badapple.loop = true;
+kawaki.loop = true;
+bakamitai.loop = true;
+never.loop = true;
+
+const SONG = {
+    BLUEBIRD: 0,
+    BADAPPLE: 1,
+    KAWAKI: 2,
+    BAKAMITAI: 3,
+    NEVER: 4,
+
+    LAST: 5
+};
+
+var songPlaying = SONG.BLUEBIRD;
 
 var capturedCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
@@ -1500,6 +1520,7 @@ function drawTitleBackground() {
 }
 
 var musicToggle = false;
+var musicSelectWidth = 100;
 var settingsDelay;
 function drawSettingsBackground() {
     settingsDelay++;
@@ -1532,10 +1553,63 @@ function drawSettingsBackground() {
         if (mouseDown && settingsDelay > 15) {
             if (musicToggle) {
                 musicToggle = false;
-                bluebird.pause();
+                switch (songPlaying) {
+                    case SONG.BLUEBIRD: {
+                        bluebird.pause();
+                        bluebird.currentTime = 0;
+                        break;
+                    }
+                    case SONG.NEVER: {
+                        never.pause();
+                        never.currentTime = 0;
+                        break;
+                    }
+                    case SONG.BADAPPLE: {
+                        badapple.pause();
+                        badapple.currentTime = 0;
+                        break;
+                    }
+                    case SONG.KAWAKI: {
+                        kawaki.pause();
+                        kawaki.currentTime = 0;
+                        break;
+                    }
+                    case SONG.BAKAMITAI: {
+                        bakamitai.pause();
+                        bakamitai.currentTime = 0;
+                        break;
+                    }
+                    default: {
+                        break;
+                    }
+                }
             } else {
                 musicToggle = true;
-                bluebird.play();
+                switch (songPlaying) {
+                    case SONG.BLUEBIRD: {
+                        bluebird.play();
+                        break;
+                    }
+                    case SONG.NEVER: {
+                        never.play();
+                        break;
+                    }
+                    case SONG.BADAPPLE: {
+                        badapple.play();
+                        break;
+                    }
+                    case SONG.KAWAKI: {
+                        kawaki.play();
+                        break;
+                    }
+                    case SONG.BAKAMITAI: {
+                        bakamitai.play();
+                        break;
+                    }
+                    default: {
+                        break;
+                    }
+                }
             }
             settingsDelay = 0;
         }
@@ -1551,6 +1625,113 @@ function drawSettingsBackground() {
     ctx.fillStyle = "#ffffff";
     ctx.font = "25px Arial";
     ctx.fillText("Music", 284, 74);
+    // music select
+    ctx.beginPath();
+    if (mouseX > 270 && mouseX < (270 + musicSelectWidth) && mouseY > 90 && mouseY < 120) {
+        if (musicToggle) {
+            ctx.fillStyle = "#00ff00";
+        } else {
+            ctx.fillStyle = "#ff0000";
+        }
+        if (mouseDown && settingsDelay > 15) {
+            musicToggle = true;
+
+            songPlaying = (songPlaying + 1) % SONG.LAST;
+            bluebird.pause();
+            bluebird.currentTime = 0;
+            never.pause();
+            never.currentTime = 0;
+            bakamitai.pause();
+            bakamitai.currentTime = 0;
+            badapple.pause();
+            badapple.currentTime = 0;
+            kawaki.pause();
+            kawaki.currentTime = 0;
+            switch (songPlaying) {
+                case SONG.BLUEBIRD: {
+                    bluebird.play();
+                    break;
+                }
+                case SONG.NEVER: {
+                    never.play();
+                    break;
+                }
+                case SONG.BADAPPLE: {
+                    badapple.play();
+                    break;
+                }
+                case SONG.KAWAKI: {
+                    kawaki.play();
+                    break;
+                }
+                case SONG.BAKAMITAI: {
+                    bakamitai.play();
+                    break;
+                }
+                default: {
+                    break;
+                }
+            }
+            settingsDelay = 0;
+        }
+    } else {
+        if (musicToggle) {
+            ctx.fillStyle = "#008800";
+        } else {
+            ctx.fillStyle = "#880000";
+        }
+    }
+    switch (songPlaying) {
+        case SONG.BLUEBIRD: {
+            ctx.fillRect(270, 90, 110, 30);
+            ctx.beginPath();
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "25px Arial";
+            ctx.fillText("Blue Bird", 274, 114);
+            musicSelectWidth = 110;
+            break;
+        }
+        case SONG.BADAPPLE: {
+            ctx.fillRect(270, 90, 125, 30);
+            ctx.beginPath();
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "25px Arial";
+            ctx.fillText("Bad Apple", 274, 114);
+            musicSelectWidth = 125;
+            break;
+        }
+        case SONG.KAWAKI: {
+            ctx.fillRect(270, 90, 215, 30);
+            ctx.beginPath();
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "25px Arial";
+            ctx.fillText("Kawaki wo Ameku", 274, 114);
+            musicSelectWidth = 215;
+            break;
+        }
+        case SONG.BAKAMITAI: {
+            ctx.fillRect(270, 90, 125, 30);
+            ctx.beginPath();
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "25px Arial";
+            ctx.fillText("Baka Mitai", 274, 114);
+            musicSelectWidth = 125;
+            break;
+        }
+        case SONG.NEVER: {
+            ctx.fillRect(270, 90, 310, 30);
+            ctx.beginPath();
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "25px Arial";
+            ctx.fillText("Never Gonna Give You Up", 277, 114);
+            musicSelectWidth = 310;
+            break;
+        }
+        default: {
+            ctx.fillText("???", 284, 114);
+            break;
+        }
+    }
     // back button
     ctx.beginPath();
     if (mouseX > 670 && mouseX < 750 && mouseY > 460 && mouseY < 490) {
