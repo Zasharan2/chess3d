@@ -1185,12 +1185,12 @@ function drawMoveToList() {
                                                     
                                                     for (var s = 0; s < tMoveToList.length; s++) {
                                                         // test move
-                                                        typeBoard[tMoveToList[s].x][tMoveToList[s].y][tMoveToList[s].z] = typeBoard[selected.x][selected.y][selected.z];
-                                                        colourBoard[tMoveToList[s].x][tMoveToList[s].y][tMoveToList[s].z] = colourBoard[selected.x][selected.y][selected.z];
-                                                        countBoard[tMoveToList[s].x][tMoveToList[s].y][tMoveToList[s].z] = countBoard[selected.x][selected.y][selected.z] + 1;
+                                                        typeBoard[tMoveToList[s].x][tMoveToList[s].y][tMoveToList[s].z] = typeBoard[l2][m2][n2];
+                                                        colourBoard[tMoveToList[s].x][tMoveToList[s].y][tMoveToList[s].z] = colourBoard[l2][m2][n2];
+                                                        countBoard[tMoveToList[s].x][tMoveToList[s].y][tMoveToList[s].z] = countBoard[l2][m2][n2] + 1;
 
-                                                        typeBoard[selected.x][selected.y][selected.z] = -1;
-                                                        countBoard[selected.x][selected.y][selected.z] = 0;
+                                                        typeBoard[l2][m2][n2] = -1;
+                                                        countBoard[l2][m2][n2] = 0;
 
                                                         // check if in check
                                                         checkList = [];
@@ -1204,7 +1204,6 @@ function drawMoveToList() {
                                                             for (var m3 = 0; m3 < checkBoard.length; m3++) {
                                                                 for (var n3 = 0; n3 < checkBoard.length; n3++) {
                                                                     if (checkBoard[l3][m3][n3] == 1 && colourBoard[l3][m3][n3] == turn) {
-                                                                        console.log(l3 + "," + m3 + "," + n3);
                                                                         incheck = true;
                                                                     }
                                                                 }
