@@ -1429,7 +1429,6 @@ function clearBoard() {
 }
 
 var titlePieceX = 300;
-var titlePieceMoveDir = 2 * (Math.round(Math.random()) - 0.5);
 function drawTitleBackground() {
     // black background
     ctx.beginPath();
@@ -1499,12 +1498,14 @@ function drawTitleBackground() {
     ctx.fillText("OPTION", 472, 300);
     // moving bishop
     if (mouseX > 450 && mouseX < 600 && mouseY > 190 && mouseY < 325) {
+        if (Math.abs(titlePieceX - 300) / 300 < 0.1 && mouseX > 525) {
+            titlePieceMoveDir = -1;
+        } else if (Math.abs(titlePieceX - 300) / 300 < 0.1 && mouseX < 525) {
+            titlePieceMoveDir = 1;
+        }
         titlePieceX += ((300 + (270 * titlePieceMoveDir)) - titlePieceX) / 5;
     } else {
         titlePieceX += (300 - titlePieceX) / 5;
-    }
-    if (Math.abs(titlePieceX - 300) / 300 < 0.1) {
-        titlePieceMoveDir = 2 * (Math.round(Math.random()) - 0.5);
     }
     ctx.drawImage(spritesheet, (1280/3), 0, 213, 213, titlePieceX, 70, 450, 450);
     // dark brown (when bishop moves, cover)
