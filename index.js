@@ -89,6 +89,7 @@ var boardLength = 8;
 var typeBoard = Array(boardLength).fill().map(() => Array(boardLength).fill().map(() => Array(boardLength).fill(-1)));
 var colourBoard = Array(boardLength).fill().map(() => Array(boardLength).fill().map(() => Array(boardLength).fill(-1)));
 var countBoard = Array(boardLength).fill().map(() => Array(boardLength).fill().map(() => Array(boardLength).fill(0)));
+var passantBoard = Array(boardLength).fill().map(() => Array(boardLength).fill().map(() => Array(boardLength).fill(0)));
 var checkBoard = Array(boardLength).fill().map(() => Array(boardLength).fill().map(() => Array(boardLength).fill(0)));
 
 var selected = new BoardPos(-1, -1, -1);
@@ -518,6 +519,17 @@ function calculatePawnMove() {
         if (!(selected.y == 0 || selected.z == 7)) {
             if ((typeBoard[selected.x][selected.y - 1][selected.z + 1] != PIECE.BLANK) && (colourBoard[selected.x][selected.y - 1][selected.z + 1] == COLOUR.BLACK)) {
                 moveToList.push(new BoardPos(selected.x, selected.y - 1, selected.z + 1));
+            }
+        }
+        if (passantBoard[selected.x][selected.y][selected.z] == 1) {
+            for (var u2 = 0; u2 < boardLength; u2++) {
+                for (var v2 = 0; v2 < boardLength; v2++) {
+                    for (var w2 = 0; w2 < boardLength; w2++) {
+                        if (passantBoard[u2][v2][w2] == 3) {
+                            moveToList.push(new BoardPos(u2, v2, w2));
+                        }
+                    }
+                }
             }
         }
     } else {
@@ -1009,15 +1021,17 @@ function calculateKingMove() {
     }
 }
 
-function placePiece(x, y, z, type, col, moveCount) {
+function placePiece(x, y, z, type, col, moveCount, passant) {
     typeBoard[x][y][z] = type;
     colourBoard[x][y][z] = col;
     countBoard[x][y][z] = moveCount;
+    passantBoard[x][y][z] = passant;
 }
 
 var pTypeBoard;
 var pColourBoard;
 var pCountBoard;
+var pPassantBoard;
 var incheck;
 var toConvert;
 var rMoveToList;
@@ -1039,12 +1053,14 @@ function drawMoveToList() {
                 pTypeBoard = Array(boardLength).fill().map(() => Array(boardLength).fill().map(() => Array(boardLength).fill(-1)));
                 pColourBoard = Array(boardLength).fill().map(() => Array(boardLength).fill().map(() => Array(boardLength).fill(-1)));
                 pCountBoard = Array(boardLength).fill().map(() => Array(boardLength).fill().map(() => Array(boardLength).fill(-1)));
+                pPassantBoard = Array(boardLength).fill().map(() => Array(boardLength).fill().map(() => Array(boardLength).fill(-1)));
                 for (var l = 0; l < typeBoard.length; l++) {
                     for (var m = 0; m < typeBoard.length; m++) {
                         for (var n = 0; n < typeBoard.length; n++) {
                             pTypeBoard[l][m][n] = typeBoard[l][m][n];
                             pColourBoard[l][m][n] = colourBoard[l][m][n];
                             pCountBoard[l][m][n] = countBoard[l][m][n];
+                            pPassantBoard[l][m][n] = passantBoard[l][m][n];
                         }
                     }
                 }
@@ -1053,9 +1069,39 @@ function drawMoveToList() {
                 typeBoard[rMoveToList[i].x][rMoveToList[i].y][rMoveToList[i].z] = typeBoard[selected.x][selected.y][selected.z];
                 colourBoard[rMoveToList[i].x][rMoveToList[i].y][rMoveToList[i].z] = colourBoard[selected.x][selected.y][selected.z];
                 countBoard[rMoveToList[i].x][rMoveToList[i].y][rMoveToList[i].z] = countBoard[selected.x][selected.y][selected.z] + 1;
+                for (var u = 0; u < boardLength; u++) {
+                    for (var v = 0; v < boardLength; v++) {
+                        for (var w = 0; w < boardLength; w++) {
+                            if (passantBoard[u][v][w] == 2) {
+                                if (passantBoard[selected.x][selected.y][selected.z] == 1 && passantBoard[rMoveToList[i].x][rMoveToList[i].y][rMoveToList[i].z] == 3 && typeBoard[rMoveToList[i].x][rMoveToList[i].y][rMoveToList[i].z] == PIECE.PAWN) {
+                                    typeBoard[u][v][w] = PIECE.BLANK;
+                                    countBoard[u][v][w] = 0;
+                                }
+                            }
+                            passantBoard[u][v][w] = 0;
+                        }
+                    }
+                }
+                if (typeBoard[rMoveToList[i].x][rMoveToList[i].y][rMoveToList[i].z] == PIECE.PAWN && Math.abs(rMoveToList[i].z - selected.z) == 2) {
+                    passantBoard[rMoveToList[i].x][rMoveToList[i].y][rMoveToList[i].z] = 2;
+                    if (rMoveToList[i].x > 0) {
+                        passantBoard[rMoveToList[i].x - 1][rMoveToList[i].y][rMoveToList[i].z] = 1;
+                    }
+                    if (rMoveToList[i].x < 7) {
+                        passantBoard[rMoveToList[i].x + 1][rMoveToList[i].y][rMoveToList[i].z] = 1;
+                    }
+                    if (rMoveToList[i].y > 0) {
+                        passantBoard[rMoveToList[i].x][rMoveToList[i].y - 1][rMoveToList[i].z] = 1;
+                    }
+                    if (rMoveToList[i].y < 7) {
+                        passantBoard[rMoveToList[i].x][rMoveToList[i].y + 1][rMoveToList[i].z] = 1;
+                    }
+                    passantBoard[rMoveToList[i].x][rMoveToList[i].y][Math.floor((rMoveToList[i].z + selected.z) / 2)] = 3;
+                }
 
                 typeBoard[selected.x][selected.y][selected.z] = -1;
                 countBoard[selected.x][selected.y][selected.z] = 0;
+                passantBoard[selected.x][selected.y][selected.z] = 0;
 
                 // append to movelist
                 if (turn == COLOUR.BLACK) {
@@ -1084,6 +1130,7 @@ function drawMoveToList() {
                     typeBoard = pTypeBoard;
                     colourBoard = pColourBoard;
                     countBoard = pCountBoard;
+                    passantBoard = pPassantBoard;
                     checkCheck();
 
                     moveList = moveList.slice(0, -10);
@@ -1144,6 +1191,7 @@ function drawMoveToList() {
                                 pTypeBoard[l][m][n] = typeBoard[l][m][n];
                                 pColourBoard[l][m][n] = colourBoard[l][m][n];
                                 pCountBoard[l][m][n] = countBoard[l][m][n];
+                                pPassantBoard[l][m][n] = passantBoard[l][m][n];
                             }
                         }
                     }
@@ -1188,9 +1236,39 @@ function drawMoveToList() {
                                                         typeBoard[tMoveToList[s].x][tMoveToList[s].y][tMoveToList[s].z] = typeBoard[l2][m2][n2];
                                                         colourBoard[tMoveToList[s].x][tMoveToList[s].y][tMoveToList[s].z] = colourBoard[l2][m2][n2];
                                                         countBoard[tMoveToList[s].x][tMoveToList[s].y][tMoveToList[s].z] = countBoard[l2][m2][n2] + 1;
-
+                                                        for (var u = 0; u < boardLength; u++) {
+                                                            for (var v = 0; v < boardLength; v++) {
+                                                                for (var w = 0; w < boardLength; w++) {
+                                                                    if (passantBoard[u][v][w] == 2) {
+                                                                        if (passantBoard[l2][m2][n2] == 1 && passantBoard[tMoveToList[s].x][tMoveToList[s].y][tMoveToList[s].z] == 3 && typeBoard[tMoveToList[s].x][tMoveToList[s].y][tMoveToList[s].z] == PIECE.PAWN) {
+                                                                            typeBoard[u][v][w] = PIECE.BLANK;
+                                                                            countBoard[u][v][w] = 0;
+                                                                        }
+                                                                    }
+                                                                    passantBoard[u][v][w] = 0;
+                                                                }
+                                                            }
+                                                        }
+                                                        if (typeBoard[tMoveToList[s].x][tMoveToList[s].y][tMoveToList[s].z] == PIECE.PAWN && Math.abs(tMoveToList[s].z - n2) == 2) {
+                                                            passantBoard[tMoveToList[s].x][tMoveToList[s].y][tMoveToList[s].z] = 2;
+                                                            if (tMoveToList[s].x > 0) {
+                                                                passantBoard[tMoveToList[s].x - 1][tMoveToList[s].y][tMoveToList[s].z] = 1;
+                                                            }
+                                                            if (tMoveToList[s].x < 7) {
+                                                                passantBoard[tMoveToList[s].x + 1][tMoveToList[s].y][tMoveToList[s].z] = 1;
+                                                            }
+                                                            if (tMoveToList[s].y > 0) {
+                                                                passantBoard[tMoveToList[s].x][tMoveToList[s].y - 1][tMoveToList[s].z] = 1;
+                                                            }
+                                                            if (tMoveToList[s].y < 7) {
+                                                                passantBoard[tMoveToList[s].x][tMoveToList[s].y + 1][tMoveToList[s].z] = 1;
+                                                            }
+                                                            passantBoard[tMoveToList[s].x][tMoveToList[s].y][Math.floor((tMoveToList[s].z + n2) / 2)] = 3;
+                                                        }
+                                                                                
                                                         typeBoard[l2][m2][n2] = -1;
                                                         countBoard[l2][m2][n2] = 0;
+                                                        passantBoard[l2][m2][n2] = 0;
 
                                                         // check if in check
                                                         checkList = [];
@@ -1222,6 +1300,7 @@ function drawMoveToList() {
                                                                     typeBoard[ll][mm][nn] = pTypeBoard[ll][mm][nn];
                                                                     colourBoard[ll][mm][nn] = pColourBoard[ll][mm][nn];
                                                                     countBoard[ll][mm][nn] = pCountBoard[ll][mm][nn];
+                                                                    passantBoard[ll][mm][nn] = pPassantBoard[ll][mm][nn];
                                                                 }
                                                             }
                                                         }
@@ -1425,6 +1504,7 @@ function clearBoard() {
     typeBoard = Array(boardLength).fill().map(() => Array(boardLength).fill().map(() => Array(boardLength).fill(-1)));
     colourBoard = Array(boardLength).fill().map(() => Array(boardLength).fill().map(() => Array(boardLength).fill(-1)));
     countBoard = Array(boardLength).fill().map(() => Array(boardLength).fill().map(() => Array(boardLength).fill(0)));
+    passantBoard = Array(boardLength).fill().map(() => Array(boardLength).fill().map(() => Array(boardLength).fill(0)));
 }
 
 var titlePieceX = 300;
