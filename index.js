@@ -1035,6 +1035,7 @@ var pPassantBoard;
 var incheck;
 var toConvert;
 var rMoveToList;
+var passantCapture;
 function drawMoveToList() {
     rMoveToList = [];
     for (var i = 0; i < moveToList.length; i++) {
@@ -1066,6 +1067,7 @@ function drawMoveToList() {
                 }
 
                 // move
+                passantCapture = false;
                 typeBoard[rMoveToList[i].x][rMoveToList[i].y][rMoveToList[i].z] = typeBoard[selected.x][selected.y][selected.z];
                 colourBoard[rMoveToList[i].x][rMoveToList[i].y][rMoveToList[i].z] = colourBoard[selected.x][selected.y][selected.z];
                 countBoard[rMoveToList[i].x][rMoveToList[i].y][rMoveToList[i].z] = countBoard[selected.x][selected.y][selected.z] + 1;
@@ -1082,6 +1084,7 @@ function drawMoveToList() {
                                     } else {
                                         capturedCounts[0]++;
                                     }
+                                    passantCapture = true;
                                 }
                             }
                         }
@@ -1151,6 +1154,9 @@ function drawMoveToList() {
                     // otherwise, advance turn
                     turn = (turn + 1) % 2;
 
+                    if (passantCapture) {
+                        moveList = moveList.slice(0, moveList.length - 4) + "x" + moveList.slice(moveList.length - 4);
+                    }
                     if (pTypeBoard[xForMoveList][yForMoveList][zForMoveList] != PIECE.BLANK) {
                         moveList = moveList.slice(0, moveList.length - 4) + "x" + moveList.slice(moveList.length - 4);
                         switch (pTypeBoard[xForMoveList][yForMoveList][zForMoveList]) {
