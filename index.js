@@ -1077,6 +1077,11 @@ function drawMoveToList() {
                                     typeBoard[u][v][w] = PIECE.BLANK;
                                     colourBoard[u][v][w] = -1;
                                     countBoard[u][v][w] = 0;
+                                    if (turn == COLOUR.WHITE) {
+                                        capturedCounts[5]++;
+                                    } else {
+                                        capturedCounts[0]++;
+                                    }
                                 }
                             }
                         }
