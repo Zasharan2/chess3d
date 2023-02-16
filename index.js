@@ -1075,9 +1075,17 @@ function drawMoveToList() {
                             if (passantBoard[u][v][w] == 2) {
                                 if (passantBoard[selected.x][selected.y][selected.z] == 1 && passantBoard[rMoveToList[i].x][rMoveToList[i].y][rMoveToList[i].z] == 3 && typeBoard[rMoveToList[i].x][rMoveToList[i].y][rMoveToList[i].z] == PIECE.PAWN) {
                                     typeBoard[u][v][w] = PIECE.BLANK;
+                                    colourBoard[u][v][w] = -1;
                                     countBoard[u][v][w] = 0;
                                 }
                             }
+                        }
+                    }
+                }
+                for (var u = 0; u < boardLength; u++) {
+                    for (var v = 0; v < boardLength; v++) {
+                        for (var w = 0; w < boardLength; w++) {
+                            // cannot be in above uvw loop (above loop requires knowledge of passantBoard at moving from and moving to points)
                             passantBoard[u][v][w] = 0;
                         }
                     }
