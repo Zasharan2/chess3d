@@ -190,6 +190,54 @@ function drawBackground() {
     ctx.fillText(capturedCounts[8], 920, 236);
     ctx.fillText(capturedCounts[9], 970, 236);
 
+    // promotion background
+    ctx.fillStyle = "#442200";
+    ctx.fillRect(760, 300, 240, 70);
+    // promotion label
+    ctx.beginPath();
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "30px Arial";
+    ctx.fillText("Promotion", 810, 286);
+    if (promoting) {
+        // pieces
+        if (mouseX > 763 && mouseX < 803 && mouseY > 312 && mouseY < 352) {
+            ctx.drawImage(spritesheet, 3 * (640 / 3), promotingCol * (427 / 2), (640 / 3), (640 / 3), 758, 307, 50, 50);
+            if (mouseDown) {
+                typeBoard[promotingPos.x][promotingPos.y][promotingPos.z] = PIECE.KNIGHT;
+                promoting = false;
+            }
+        } else {
+            ctx.drawImage(spritesheet, 3 * (640 / 3), promotingCol * (427 / 2), (640 / 3), (640 / 3), 763, 312, 40, 40);
+        }
+        if (mouseX > 824 && mouseX < 864 && mouseY > 312 && mouseY < 352) {
+            ctx.drawImage(spritesheet, 2 * (640 / 3), promotingCol * (427 / 2), (640 / 3), (640 / 3), 819, 307, 50, 50);
+            if (mouseDown) {
+                typeBoard[promotingPos.x][promotingPos.y][promotingPos.z] = PIECE.BISHOP;
+                promoting = false;
+            }
+        } else {
+            ctx.drawImage(spritesheet, 2 * (640 / 3), promotingCol * (427 / 2), (640 / 3), (640 / 3), 824, 312, 40, 40);
+        }
+        if (mouseX > 890 && mouseX < 930 && mouseY > 312 && mouseY < 352) {
+            ctx.drawImage(spritesheet, 4 * (640 / 3), promotingCol * (427 / 2), (640 / 3), (640 / 3), 885, 307, 50, 50);
+            if (mouseDown) {
+                typeBoard[promotingPos.x][promotingPos.y][promotingPos.z] = PIECE.ROOK;
+                promoting = false;
+            }
+        } else {
+            ctx.drawImage(spritesheet, 4 * (640 / 3), promotingCol * (427 / 2), (640 / 3), (640 / 3), 890, 312, 40, 40);
+        }
+        if (mouseX > 958 && mouseX < 998 && mouseY > 312 && mouseY < 352) {
+            ctx.drawImage(spritesheet, 1 * (640 / 3), promotingCol * (427 / 2), (640 / 3), (640 / 3), 953, 307, 50, 50);
+            if (mouseDown) {
+                typeBoard[promotingPos.x][promotingPos.y][promotingPos.z] = PIECE.QUEEN;
+                promoting = false;
+            }
+        } else {
+            ctx.drawImage(spritesheet, 1 * (640 / 3), promotingCol * (427 / 2), (640 / 3), (640 / 3), 958, 312, 40, 40);
+        }
+    }
+
     // boards
     for (var i = 0; i < boardLength; i++) {
         // begin board background
@@ -380,13 +428,13 @@ function drawPiece(type, colour, x, y, z) {
     ctx.beginPath();
     if (colour == turn && mouseX > (x * 54) + 40 && mouseX < (x * 54) + 94 && mouseY > (y * 54) + (z * 512) + 40 && mouseY < (y * 54) + (z * 512) + 94) {
         ctx.drawImage(spritesheet, type * (640 / 3), colour * (427 / 2), (640 / 3), (640 / 3), (x * 54) + 36, (y * 54) + (z * 512) + 36, 62, 62);
-        if (mouseDown && mouseButton == CLICK.LEFT) {
+        if (mouseDown && mouseButton == CLICK.LEFT && !promoting) {
             selected.set(x, y, z);
             calculateMoveToList();
         }
     } else {
         if (colour != turn && mouseX > (x * 54) + 40 && mouseX < (x * 54) + 94 && mouseY > (y * 54) + (z * 512) + 40 && mouseY < (y * 54) + (z * 512) + 94) {
-            if (mouseDown && mouseButton == CLICK.RIGHT) {
+            if (mouseDown && mouseButton == CLICK.RIGHT && !promoting) {
                 turn = (turn + 1) % 2;
                 selected.set(x, y, z);
                 calculateMoveToList();
@@ -1036,6 +1084,9 @@ var incheck;
 var toConvert;
 var rMoveToList;
 var passantCapture;
+var promoting;
+var promotingCol;
+var promotingPos;
 function drawMoveToList() {
     rMoveToList = [];
     for (var i = 0; i < moveToList.length; i++) {
@@ -1045,7 +1096,7 @@ function drawMoveToList() {
         ctx.beginPath();
         if (mouseX > (rMoveToList[i].x * 54) + 40 && mouseX < (rMoveToList[i].x * 54) + 94 && mouseY > (rMoveToList[i].y * 54) + (rMoveToList[i].z * 512) + 40 && mouseY < (rMoveToList[i].y * 54) + (rMoveToList[i].z * 512) + 94) {
             ctx.fillStyle = "#00ff0088";
-            if (mouseDown && mouseButton == CLICK.LEFT) {
+            if (mouseDown && mouseButton == CLICK.LEFT && !promoting) {
                 var xForMoveList, yForMoveList, zForMoveList;
                 xForMoveList = rMoveToList[i].x;
                 yForMoveList = rMoveToList[i].y;
@@ -1113,6 +1164,12 @@ function drawMoveToList() {
                         passantBoard[rMoveToList[i].x][rMoveToList[i].y + 1][rMoveToList[i].z] = 1;
                     }
                     passantBoard[rMoveToList[i].x][rMoveToList[i].y][Math.floor((rMoveToList[i].z + selected.z) / 2)] = 3;
+                }
+                if (typeBoard[rMoveToList[i].x][rMoveToList[i].y][rMoveToList[i].z] == PIECE.PAWN && (rMoveToList[i].z == 0 || rMoveToList[i].z == 7)) {
+                    // pawn promote
+                    promoting = true;
+                    promotingCol = turn;
+                    promotingPos = new BoardPos(rMoveToList[i].x, rMoveToList[i].y, rMoveToList[i].z);
                 }
 
                 typeBoard[selected.x][selected.y][selected.z] = -1;
@@ -1858,6 +1915,8 @@ function main() {
         }
         case (SCREENTYPE.TITLE_TO_LOCALGAME): {
             initBoard();
+            promoting = false;
+            promotingCol = COLOUR.BLACK;
             gameScreen = SCREENTYPE.LOCALGAME;
             break;
         }
