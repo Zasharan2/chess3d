@@ -39,16 +39,19 @@ const CLICK = {
 
 const SCREENTYPE = {
     TITLE: 1,
-    TITLE_TO_LOCALGAME: 1.2,
-    TITLE_TO_ONLINEGAME: 1.3,
-    TITLE_TO_SETTINGS: 1.4,
-    LOCALGAME: 2,
-    ONLINEGAME: 3,
-    SETTINGS: 4,
-    SETTINGS_TO_TITLE: 4.1
+    TITLE_TO_EDITLOCAL: 1.2,
+    TITLE_TO_LOCALGAME: 1.3, // deprecated
+    TITLE_TO_ONLINEGAME: 1.4,
+    TITLE_TO_SETTINGS: 1.5,
+    EDITLOCAL: 2,
+    EDITLOCAL_TO_LOCALGAME: 2.3,
+    LOCALGAME: 3,
+    ONLINEGAME: 4,
+    SETTINGS: 5,
+    SETTINGS_TO_TITLE: 6.1
 }
 
-var gameScreen;
+var gameScreen = SCREENTYPE.TITLE;
 
 var spritesheet = document.getElementById("spritesheet");
 
@@ -59,7 +62,7 @@ const PIECE = {
     BISHOP: 2,
     KNIGHT: 3,
     ROOK: 4,
-    PAWN: 5
+    PAWN: 5,
 };
 
 const COLOUR = {
@@ -286,6 +289,145 @@ function drawBackground() {
                 ctx.fillText("87654321"[j], 5, 69 + (54 * j) + (512 * i));
             }
             ctx.fillText("αβγδεζηθ"[i], 497, 260 + (512 * i));
+        }
+    }
+}
+
+var editSelected = 0;
+function drawBackgroundEdit() {
+    // background
+    ctx.beginPath();
+    // right background
+    ctx.fillStyle = "#663300";
+    ctx.fillRect(512, 0, 512, 4096);
+    // left background
+    ctx.fillStyle = "#442200";
+    ctx.fillRect(0, 0, 512, 4096);
+
+    // select background
+    ctx.fillStyle = "#442200";
+    ctx.fillRect(525, 60, 240, 90);
+    // select label
+    ctx.beginPath();
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "30px Arial";
+    ctx.fillText("Select", 605, 46);
+
+    // editing label
+    ctx.beginPath();
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "40px Arial";
+    ctx.fillText("Editing", 890, 46);
+    ctx.font = "20px Arial";
+    ctx.fillText("(Initial Board Layout)", 830, 76);
+
+    // pieces
+    for (var m = 0; m < 12; m++) {
+        if ((mouseX > (525 + ((m % 6) * 40))) && (mouseX < (565 + ((m % 6) * 40))) && (mouseY > (62 + (Math.floor(m / 6) * 40))) && (mouseY < (102 + (Math.floor(m / 6) * 40)))) {
+            if (mouseDown) {
+                editSelected = m;
+            }
+            ctx.drawImage(spritesheet, (m % 6) * (640 / 3), Math.floor(m / 6) * (427 / 2), (640 / 3), (640 / 3), 520 + ((m % 6) * 40), 57 + (Math.floor(m / 6) * 40), 50, 50);
+        } else {
+            ctx.drawImage(spritesheet, (m % 6) * (640 / 3), Math.floor(m / 6) * (427 / 2), (640 / 3), (640 / 3), 525 + ((m % 6) * 40), 62 + (Math.floor(m / 6) * 40), 40, 40);
+        }
+    }
+
+    // continue button
+    ctx.beginPath();
+    if (mouseX > 525 && mouseX < 645 && mouseY > 196 && mouseY < 226) {
+        ctx.fillStyle = "#cc8800";
+        if (mouseDown) {
+            gameScreen = SCREENTYPE.EDITLOCAL_TO_LOCALGAME;
+        }
+    } else {
+        ctx.fillStyle = "#442200";
+    }
+    ctx.fillRect(525, 196, 120, 30);
+    ctx.beginPath();
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "25px Arial";
+    ctx.fillText("Continue", 535, 220);
+
+    // boards
+    for (var i = 0; i < boardLength; i++) {
+        // begin board background
+        ctx.beginPath();
+        ctx.fillStyle = "#884400";
+        ctx.fillRect(20, 20 + (512 * i), 472, 472);
+
+        // turn colour
+        if (turn == COLOUR.WHITE) {
+            ctx.fillStyle = "#ffffff";
+        } else {
+            ctx.fillStyle = "#000000";
+        }
+        ctx.fillRect(27, 27 + (512 * i), 458, 458);
+
+        // finish board background
+        ctx.fillStyle = "#884400";
+        ctx.fillRect(33, 33 + (512 * i), 446, 446);
+
+        // white spaces
+        ctx.beginPath();
+        ctx.fillStyle = "#ffddaa";
+        ctx.fillRect(40, 40 + (512 * i), 432, 432);
+
+        // black spaces
+        for (var j = 0; j < boardLength; j++) {
+            for (var k = 0; k < boardLength; k++) {
+                if ((i + j + k) % 2 == 1) {
+                    // white spaces
+                    ctx.beginPath();
+                    ctx.fillStyle = "#662200";
+                    ctx.fillRect(40 + (54 * j), 40 + (54 * k) + (512 * i), 54, 54);
+                }
+            }
+        }
+
+        // labels
+        if (showLabels) {
+            ctx.beginPath();
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "20px Arial";
+            for (var j = 0; j < boardLength; j++) {
+                ctx.fillText("abcdefgh"[j], 61 + (54 * j), 15 + (512 * i));
+            }
+            for (var j = 0; j < boardLength; j++) {
+                ctx.fillText("87654321"[j], 5, 69 + (54 * j) + (512 * i));
+            }
+            ctx.fillText("αβγδεζηθ"[i], 497, 260 + (512 * i));
+        }
+    }
+
+    // draw pieces
+    for (var i = 0; i < boardLength; i++) {
+        for (var j = 0; j < boardLength; j++) {
+            for (var k = 0; k < boardLength; k++) {
+                // ctx.drawImage(spritesheet, (typeBoard[i][j][k] % 6) * (640 / 3), Math.floor(typeBoard[i][j][k] / 6) * (427 / 2), (640 / 3), (640 / 3), (i * 54) + 40, (j * 54) + (k * 512) + 40, 54, 54);
+                ctx.drawImage(spritesheet, typeBoard[i][j][k] * (640 / 3), colourBoard[i][j][k] * (427 / 2), (640 / 3), (640 / 3), (i * 54) + 40, (j * 54) + (k * 512) + 40, 54, 54);
+            }
+        }
+    }
+
+    // draw pink select
+    for (var i = 0; i < boardLength; i++) {
+        for (var j = 0; j < boardLength; j++) {
+            for (var k = 0; k < boardLength; k++) {
+                if (mouseX > 40 + (54 * i) && mouseX < 94 + (54 * i) && mouseY > 40 + (54 * j) + (512 * k) && mouseY < 94 + (54 * j) + (512 * k)) {
+                    if (mouseDown && mouseButton == CLICK.LEFT) {
+                        typeBoard[i][j][k] = (editSelected % 6);
+                        colourBoard[i][j][k] = Math.floor(editSelected / 6)
+                    }
+                    
+                    if (mouseDown && mouseButton == CLICK.RIGHT) {
+                        typeBoard[i][j][k] = PIECE.BLANK;
+                    }
+                    ctx.beginPath();
+                    ctx.fillStyle = "#ff00ff88";
+                    ctx.fillRect(40 + (54 * i), 40 + (54 * j) + (512 * k), 54, 54);
+                }
+            }
         }
     }
 }
@@ -1611,7 +1753,7 @@ function drawTitleBackground() {
     if (mouseX > 470 && mouseX < 570 && mouseY > 196 && mouseY < 226) {
         ctx.fillStyle = "#cc8800";
         if (mouseDown) {
-            gameScreen = SCREENTYPE.TITLE_TO_LOCALGAME;
+            gameScreen = SCREENTYPE.TITLE_TO_EDITLOCAL;
         }
     } else {
         ctx.fillStyle = "#663300";
@@ -1905,14 +2047,13 @@ function drawSettingsBackground() {
     ctx.fillText("Back", 681, 484);
 }
 
-gameScreen = SCREENTYPE.TITLE;
-
 function main() {
     switch (gameScreen) {
         case (SCREENTYPE.TITLE): {
             drawTitleBackground();
             break;
         }
+        // deprecated
         case (SCREENTYPE.TITLE_TO_LOCALGAME): {
             initBoard();
             promoting = false;
@@ -1923,6 +2064,21 @@ function main() {
         case (SCREENTYPE.TITLE_TO_SETTINGS): {
             settingsDelay = 15;
             gameScreen = SCREENTYPE.SETTINGS;
+            break;
+        }
+        case (SCREENTYPE.TITLE_TO_EDITLOCAL): {
+            initBoard();
+            gameScreen = SCREENTYPE.EDITLOCAL;
+            break;
+        }
+        case (SCREENTYPE.EDITLOCAL): {
+            drawBackgroundEdit();
+            break;
+        }
+        case (SCREENTYPE.EDITLOCAL_TO_LOCALGAME): {
+            promoting = false;
+            promotingCol = COLOUR.BLACK;
+            gameScreen = SCREENTYPE.LOCALGAME;
             break;
         }
         case (SCREENTYPE.SETTINGS): {
