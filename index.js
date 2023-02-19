@@ -2079,7 +2079,7 @@ function joinOnline() {
 
             onChildRemoved(oGameRef, (snapshot) => {
                 // something like below:
-                // oGameMove = "forfeit"
+                // oGameMove = "disconnect"
             });
         } else {
             // not logged in
@@ -2144,7 +2144,7 @@ function createOnline() {
 
             onChildRemoved(oGameRef, (snapshot) => {
                 // something like below:
-                // oGameMove = "forfeit"
+                // oGameMove = "disconnect"
             });
         } else {
             // not logged in
