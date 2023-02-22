@@ -160,6 +160,8 @@ const SONG = {
 
 var songPlaying = SONG.BLUEBIRD;
 
+var icon = document.getElementById("icon");
+
 var capturedCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
 function drawBackground() {
@@ -326,6 +328,13 @@ function drawBackground() {
             }
             ctx.fillText("αβγδεζηθ"[i], 497, 260 + (512 * i));
         }
+    }
+
+    // icon
+    if (turn == COLOUR.WHITE) {
+        icon.href = "images/whitepawn.png";
+    } else if (turn == COLOUR.BLACK) {
+        icon.href = "images/blackpawn.png";
     }
 }
 
